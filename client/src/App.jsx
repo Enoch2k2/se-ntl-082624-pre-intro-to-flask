@@ -1,34 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [books, setBooks] = useState([])
+  const [title, setTitle] = useState("")
+
+  useEffect(() => {
+    fetch('http://localhost:5555/api/books')
+      .then(resp => resp.json())
+      .then(data => setBooks(data))
+  }, [])
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    const bookData = { title }
+    const options = {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(bookData)
+    }
+
+    const resp = await fetch('http://localhost:5555/api/books', options)
+    const bookJson = await resp.json()
+    setBooks([...books, bookJson])
+  }
+
+  const bookLis = books.map(book => <li key={book.id}>{ book.title }</li>)
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div>
+      <h1>Booktopia</h1>
+      <h3>Create Book</h3>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="title">Title: </label><br />
+          <input type="text" name="title" id="title" value={title} onChange={e => setTitle(e.target.value)} />
+        </div>
+        <br />
+        <input type="submit" value="Create Book" />
+      </form>
+
+      <h3>List Books</h3>
+      <ul>
+        {bookLis}
+      </ul>
+    </div>
   )
 }
 
